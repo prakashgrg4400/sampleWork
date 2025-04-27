@@ -1,85 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://kit.fontawesome.com/1a937f0349.js" crossorigin="anonymous"></script>
-    <script src="app.js" defer></script>
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grok Chat Interface</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.6/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #f5f5f5;
+    }
+    #root {
+      height: 100vh;
+      display: flex;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <i class="fa-solid fa-bars hamburger"></i>
-             <h1>logo</h1>
-             <ul>
-                <li>hot list</li>
-                <li>top</li>
-                <li>dresses</li>
-                <li>baby</li>
-                <li>fashion</li>
-                <li>home</li>
-             </ul>
-             <div class="right-nav">
-                <a href="">Sign in</a>
-                <button>My cart</button>
-             </div>
-        </nav>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
 
-        <div class="img-slider">
-            <div class="slider active">
-                <img src="img/burgess-milner-OYYE4g-I5ZQ-unsplash.jpg" alt="">
-            </div>
-            <div class="slider">
-                <img src="img/chuttersnap-R2yGogv8NZM-unsplash.jpg" alt="">
-            </div>
-            <div class="slider">
-                <img src="img/sebastian-pociecha-JN4gEX-tR1o-unsplash.jpg" alt="">
-            </div>
-            <div class="slider">
-                <img src="img/waldemar-Db4d6MRIXJc-unsplash.jpg" alt="">
-            </div>
-
-            <div class="navigation">
-                <div class="btn"></div>
-                <div class="btn"></div>
-                <div class="btn"></div>
-                <div class="btn"></div>
-            </div>
+    const ChatMessage = ({ message, isUser }) => (
+      <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 px-4`}>
+        <div
+          className={`max-w-[70%] p-3 rounded-lg shadow ${
+            isUser ? 'bg-blue-500 text-white' : 'bg-white text-gray-800'
+          }`}
+        >
+          {message}
         </div>
-    </header>
-    <footer>
-         <div class="main-foot">
-            <div class="foot">
-                <h2>customer love</h2>
-                <a href="">refund policy</a>
-                <a href="">returns portal</a>
-                <a href="">search</a>
-                <a href="">terms of service</a>
-             </div>
-             <div class="foot">
-                <h2>info</h2>
-                <a href="">about us</a>
-                <a href="">locations</a>
-                <a href="">model + sizing</a>
-                <a href="">privacy policy</a>
-                <a href="">terms of service</a>
-                <a href="">blog</a>
-             </div>
-             <div class="foot">
-                <h2>contact us</h2>
-                <a href="">contact us</a>
-             </div>
-         </div>
-         <div class="icon">
-            <i class="fa-brands fa-facebook"></i>
-            <i class="fa-brands fa-instagram"></i>
-            <i class="fa-brands fa-twitter"></i>
-            <i class="fa-brands fa-pinterest-p"></i>
-         </div>
-         <p>© 2024 mode • Powered by Shopify</p>
+      </div>
+    );
 
-    </footer>
+    const Sidebar = ({ conversations, onSelectConversation }) => (
+      <div className="w-full md:w-64 bg-gray-800 text-white h-full p-4 flex flex-col">
+        <h2 className="text-lg font-semibold mb-4">Conversations</h2>
+        <div className="flex-1 overflow-y-auto">
+          {conversations.map((conv, index) => (
+            <div
+              key={index}
+              className="p-2 mb-2 rounded-lg hover:bg-gray-700 cursor-pointer"
+              onClick={() => onSelectConversation(index)}
+            >
+              Conversation {index + 1}
+            </div>
+          ))}
+        </div>
+        <button className="mt-4 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+          New Chat
+        </button>
+      </div>
+    );
+
+    const ChatInterface = () => {
+      const [messages, setMessages] = useState([
+        { text: 'Hello! How can I assist you today?', isUser: false },
+      ]);
+      const [input, setInput] = useState('');
+      const [conversations, setConversations] = useState([[]]);
+      const [currentConversation, setCurrentConversation] = useState(0);
+      const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+      const handleSend = () => {
+        if (input.trim()) {
+          const newMessages = [...messages, { text: input, isUser: true }];
+          setMessages(newMessages);
+          setConversations((prev) => {
+            const updated = [...prev];
+            updated[currentConversation] = newMessages;
+            return updated;
+          });
+          setInput('');
+          // Simulate AI response
+          setTimeout(() => {
+            const response = { text: `Echo: ${input}`, isUser: false };
+            setMessages((prev) => [...prev, response]);
+            setConversations((prev) => {
+              const updated = [...prev];
+              updated[currentConversation] = [...updated[currentConversation], response];
+              return updated;
+            });
+          }, 500);
+        }
+      };
+
+      const handleNewChat = () => {
+        setMessages([{ text: 'Hello! How can I assist you today?', isUser: false }]);
+        setConversations((prev) => [...prev, []]);
+        setCurrentConversation(conversations.length);
+        setIsSidebarOpen(false);
+      };
+
+      const handleSelectConversation = (index) => {
+        setCurrentConversation(index);
+        setMessages(conversations[index].length ? conversations[index] : [{ text: 'Hello! How can I assist you today?', isUser: false }]);
+        setIsSidebarOpen(false);
+      };
+
+      return (
+        <div className="flex w-full h-full">
+          {/* Sidebar */}
+          <div
+            className={`fixed md:static inset-0 z-50 bg-gray-800 transform ${
+              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            } md:translate-x-0 transition-transform duration-300 ease-in-out md:w-64`}
+          >
+            <Sidebar
+              conversations={conversations}
+              onSelectConversation={handleSelectConversation}
+              onNewChat={handleNewChat}
+            />
+          </div>
+
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col h-full">
+            {/* Header */}
+            <div className="bg-white shadow p-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <button
+                  className="md:hidden text-gray-600"
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+                  </svg>
+                </button>
+                <h1 className="text-xl font-semibold ml-2">Grok Chat</h1>
+              </div>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-4 bg-gray-100">
+              {messages.map((msg, index) => (
+                <ChatMessage key={index} message={msg.text} isUser={msg.isUser} />
+              ))}
+            </div>
+
+            {/* Input Area */}
+            <div className="bg-white p-4 shadow-inner">
+              <div className="flex items-center max-w-3xl mx-auto">
+                <textarea
+                  className="flex-1 p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows="2"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
+                  placeholder="Type your message..."
+                />
+                <button
+                  className="ml-2 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg"
+                  onClick={handleSend}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<ChatInterface />, document.getElementById('root'));
+  </script>
 </body>
 </html>
